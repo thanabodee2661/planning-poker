@@ -4,7 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { io } from "socket.io-client";
 import { v7 } from "uuid";
-import { groupBy } from "../../../../utils/common";
+import { groupBy } from "../../../utils/common";
 
 interface UserDetail {
   id: string;
