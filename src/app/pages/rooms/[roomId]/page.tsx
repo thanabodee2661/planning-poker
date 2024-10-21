@@ -78,6 +78,7 @@ export default function Rooms({ params }: { params: { roomId: string } }) {
           vote: "",
         }))
       );
+      setResultVote(undefined)
     });
 
     socket.on("showVoteResult", () => {
@@ -230,7 +231,7 @@ export default function Rooms({ params }: { params: { roomId: string } }) {
           <ul>
             {Object.entries(resultVote).map(([key, value]) => (
               <li key={key}>
-                vote: {key} - {value.length}
+                vote: {key ? key : "ไม่มี vote"} = {value.length}
               </li>
             ))}
           </ul>
