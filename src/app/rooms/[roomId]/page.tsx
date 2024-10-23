@@ -26,8 +26,8 @@ export default function Rooms({ params }: { params: { roomId: string } }) {
 
   const searchParams = useSearchParams();
   const router = useRouter();
-  // const socket = io("https://planning-poker-backend-7ii7.onrender.com");
-  const socket = io("http://localhost:3001");
+  const socket = io("https://planning-poker-backend-7ii7.onrender.com");
+  // const socket = io("http://localhost:3001");
 
   const name = searchParams.get("name");
 
@@ -44,7 +44,7 @@ export default function Rooms({ params }: { params: { roomId: string } }) {
   useEffect(() => {
     socket.off("connect");
     socket.on("connect", () => {
-      setIsConnected(true)
+      setIsConnected(true);
       console.log("Connected to server");
       if (isReConnect) {
         location.reload();
