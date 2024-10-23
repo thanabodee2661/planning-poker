@@ -30,12 +30,13 @@ export default function Rooms({ params }: { params: { roomId: string } }) {
   // const socket = io("http://localhost:3001");
 
   const name = searchParams.get("name");
+  const roomId = params.roomId;
 
   useEffect(() => {
     if (name) {
       const uuid = v7();
       setDetail({ id: uuid, name: name } as UserDetail);
-      socket.emit("joinRoom", { roomId: 1, id: uuid, name: name });
+      socket.emit("joinRoom", { roomId: roomId, id: uuid, name: name });
     } else {
       router.replace("/");
     }
@@ -135,7 +136,7 @@ export default function Rooms({ params }: { params: { roomId: string } }) {
     if (initMessage) {
       timeout = setTimeout(() => {
         socket?.emit("message", {
-          roomId: 1,
+          roomId: roomId,
           userDetail: detail,
           message: message,
         });
@@ -156,11 +157,11 @@ export default function Rooms({ params }: { params: { roomId: string } }) {
       );
     });
 
-    socket?.emit("vote", { roomId: 1, userDetail: detail, vote: value });
+    socket?.emit("vote", { roomId: roomId, userDetail: detail, vote: value });
   };
 
   const handleClear = () => {
-    socket?.emit("clear", { roomId: 1, userDetail: detail });
+    socket?.emit("clear", { roomId: roomId, userDetail: detail });
   };
 
   const handleMessage = (e: any) => {
@@ -170,7 +171,7 @@ export default function Rooms({ params }: { params: { roomId: string } }) {
   const handleShowVote = async () => {
     await summarize();
     socket?.emit("showVote", {
-      roomId: 1,
+      roomId: roomId,
       userDetail: detail,
     });
   };
@@ -178,7 +179,7 @@ export default function Rooms({ params }: { params: { roomId: string } }) {
   const summarize = async () => {
     const resultVote = await groupBy(users, (user) => user.vote);
     socket?.emit("summaryVote", {
-      roomId: 1,
+      roomId: roomId,
       userDetail: detail,
       resultVote: resultVote,
     });
