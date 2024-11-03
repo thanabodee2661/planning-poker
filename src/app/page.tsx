@@ -1,16 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 export default function PlanningPoker() {
-  const [user, setUser] = useState("");
+  const [room, setRoom] = useState("");
 
   const router = useRouter();
 
   const joinRoom = () => {
-    if (user) {
-      router.push(`/rooms/1?name=${user}`);
+    if (room) {
+      router.push(`/joins/${room}`);
+    }
+  };
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      joinRoom();
     }
   };
 
@@ -26,8 +32,10 @@ export default function PlanningPoker() {
             <input
               type="text"
               className="w-full bg-transparent placeholder:text-slate-400 text-slate-700 text-sm border border-slate-200 rounded-md pl-3 pr-20 py-2 transition duration-300 ease focus:outline-none focus:border-slate-400 hover:border-slate-300 shadow-sm focus:shadow"
-              placeholder="Enter your name"
-              onChange={(event) => setUser(event.target.value)}
+              placeholder="Enter your room id"
+              onChange={(event) => setRoom(event.target.value)}
+              onKeyDown={handleKeyDown} 
+              autoFocus
             />
             <button
               className="absolute right-1 top-1 rounded bg-light-blue-600 py-1 px-2.5 border border-transparent text-center text-sm text-white transition-all shadow-sm hover:shadow focus:bg-slate-700 focus:shadow-none active:bg-slate-700 hover:bg-slate-700 active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"

@@ -29,7 +29,8 @@ export default function Rooms({ params }: { params: { roomId: string } }) {
   const socket = io("https://planning-poker-backend-7ii7.onrender.com");
   // const socket = io("http://localhost:3001");
 
-  const name = searchParams.get("name");
+  // const name = searchParams.get("name");
+  const name = sessionStorage.getItem("name")
   const roomId = params.roomId;
 
   useEffect(() => {
