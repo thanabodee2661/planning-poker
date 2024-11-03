@@ -4,7 +4,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { io } from "socket.io-client";
 import { v7 } from "uuid";
-import { groupBy } from "../../../utils/common";
 import Loading from "@/components/loading";
 
 interface UserDetail {
@@ -13,13 +12,19 @@ interface UserDetail {
   vote: string;
 }
 
+interface ResultVote {
+  vote: string;
+  count: number;
+  isMax: Boolean
+}
+
 export default function Rooms({ params }: { params: { roomId: string } }) {
   const [detail, setDetail] = useState<UserDetail>();
   const [users, setUsers] = useState<UserDetail[]>([]);
   const [point, setPoint] = useState<string>("");
   const [message, setMessage] = useState<string>("");
   const [isShowVote, setIsShowVote] = useState<boolean>(false);
-  const [resultVote, setResultVote] = useState<Record<string, UserDetail[]>>();
+  const [resultVote, setResultVote] = useState<ResultVote[]>();
   const [initMessage, setInitMessage] = useState<boolean>(false);
   const [isReConnect, setIsReConnect] = useState<boolean>(false);
   const [isConnected, setIsConnected] = useState<boolean>(false);
@@ -30,7 +35,7 @@ export default function Rooms({ params }: { params: { roomId: string } }) {
   // const socket = io("http://localhost:3001");
 
   // const name = searchParams.get("name");
-  const name = sessionStorage.getItem("name")
+  const name = sessionStorage.getItem("name");
   const roomId = params.roomId;
 
   useEffect(() => {
@@ -39,7 +44,7 @@ export default function Rooms({ params }: { params: { roomId: string } }) {
       setDetail({ id: uuid, name: name } as UserDetail);
       socket.emit("joinRoom", { roomId: roomId, id: uuid, name: name });
     } else {
-      router.replace("/");
+      router.replace(`/joins/${roomId}`);
     }
   }, [name]);
 
@@ -178,11 +183,28 @@ export default function Rooms({ params }: { params: { roomId: string } }) {
   };
 
   const summarize = async () => {
-    const resultVote = await groupBy(users, (user) => user.vote);
+    let maxCount = 0;
+    const resultGroup: Object = users.reduce((result, user) => {
+      console.log(result, user);
+      result[user.vote] = (result[user.vote] || 0) + 1;
+      if (result[user.vote] > maxCount) {
+        maxCount = result[user.vote];
+      }
+      return result;
+    }, {} as any);
+
+    const resultWithFlags: ResultVote[] = Object.entries(resultGroup).map(([key, value]) => ({
+      vote: key,
+      count: value,
+      isMax: value === maxCount,
+    }));
+
+    console.log(resultWithFlags);
+
     socket?.emit("summaryVote", {
       roomId: roomId,
       userDetail: detail,
-      resultVote: resultVote,
+      resultVote: resultWithFlags,
     });
   };
 
@@ -318,9 +340,9 @@ export default function Rooms({ params }: { params: { roomId: string } }) {
                     Result Vote
                   </label>
                   <ul className="border border-white rounded-md p-2">
-                    {Object.entries(resultVote).map(([key, value]) => (
-                      <li key={key}>
-                        vote: {key ? key : "ไม่มี vote"} = {value.length}
+                    {resultVote.map((value) => (
+                      <li key={value.vote}>
+                        {value.vote ? value.vote : <span className="text-yellow-700">ไม่ vote</span>} = <span className={value.isMax ? "text-green-600 font-bold" : ""}>{value.count}</span>
                       </li>
                     ))}
                   </ul>
