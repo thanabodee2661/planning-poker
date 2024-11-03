@@ -4,21 +4,23 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Loading from "@/components/loading";
 
-export default function PlanningPoker() {
+export default function PlanningPoker({ params }: { params: { roomId: string } }) {
   const [user, setUser] = useState<string>("");
   const [init, setInit] = useState<Boolean>(false);
   const router = useRouter();
+
+  const roomId = params.roomId;
 
   useEffect(() => {
     const name = sessionStorage.getItem("name") || "";
     setUser(name);
     setInit(true);
-  }, [user]);
+  }, []);
 
   const joinRoom = () => {
     if (user) {
       sessionStorage.setItem("name", user);
-      router.push(`/rooms/1`);
+      router.push(`/rooms/${roomId}`);
     }
   };
   
