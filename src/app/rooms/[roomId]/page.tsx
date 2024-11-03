@@ -185,7 +185,6 @@ export default function Rooms({ params }: { params: { roomId: string } }) {
   const summarize = async () => {
     let maxCount = 0;
     const resultGroup: Object = users.reduce((result, user) => {
-      console.log(result, user);
       result[user.vote] = (result[user.vote] || 0) + 1;
       if (result[user.vote] > maxCount) {
         maxCount = result[user.vote];
@@ -198,8 +197,6 @@ export default function Rooms({ params }: { params: { roomId: string } }) {
       count: value,
       isMax: value === maxCount,
     }));
-
-    console.log(resultWithFlags);
 
     socket?.emit("summaryVote", {
       roomId: roomId,
