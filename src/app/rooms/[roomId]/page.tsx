@@ -216,7 +216,7 @@ export default function Rooms({ params }: { params: { roomId: string } }) {
 
               <div className="relative w-full">
                 <textarea
-                  className="peer h-full min-h-[100px] w-full resize-none rounded-[7px] border bg-transparent px-3 py-2.5 font-sans text-sm font-normal outline outline-0 transition-all focus:border-2"
+                  className="peer h-full min-h-[100px] w-full resize-none rounded-[7px] border bg-transparent px-3 py-2.5 font-sans text-sm font-normal outline outline-0 transition-all shadow-md focus:shadow-lg"
                   placeholder="Topic"
                   value={message}
                   onChange={handleMessage}
