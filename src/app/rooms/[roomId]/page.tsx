@@ -321,7 +321,7 @@ export default function Rooms({ params }: { params: { roomId: string } }) {
             </div>
           </div>
 
-          <div className="justify-self-center lg:justify-self-start">
+          <div className="justify-self-center lg:justify-self-start mb-2">
             <div className="grid grid-cols-1 w-96 justify-self-center">
               {resultVote ? (
                 <div className="grid grid-flow-row">
