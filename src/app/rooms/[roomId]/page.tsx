@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import { Socket, io } from "socket.io-client";
 import { v7 } from "uuid";
 import Loading from "@/components/loading";
-import { log } from "console";
 
 interface UserDetail {
   id: string;
@@ -58,7 +57,6 @@ export default function Rooms({ params }: { params: { roomId: string } }) {
   useEffect(() => {
     socket = io("https://planning-poker-backend-7ii7.onrender.com");
 
-    console.log(socket);
     socket?.on("connect", () => {
       setIsConnected(true);
       console.log("Connected to server");
