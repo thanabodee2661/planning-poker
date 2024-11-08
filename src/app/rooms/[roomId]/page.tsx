@@ -2,9 +2,10 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { io } from "socket.io-client";
+import { Socket, io } from "socket.io-client";
 import { v7 } from "uuid";
 import Loading from "@/components/loading";
+import { log } from "console";
 
 interface UserDetail {
   id: string;
@@ -15,8 +16,10 @@ interface UserDetail {
 interface ResultVote {
   vote: string;
   count: number;
-  isMax: Boolean
+  isMax: Boolean;
 }
+
+let socket: Socket | null = null;
 
 export default function Rooms({ params }: { params: { roomId: string } }) {
   const [detail, setDetail] = useState<UserDetail>();
@@ -28,56 +31,54 @@ export default function Rooms({ params }: { params: { roomId: string } }) {
   const [initMessage, setInitMessage] = useState<boolean>(false);
   const [isReConnect, setIsReConnect] = useState<boolean>(false);
   const [isConnected, setIsConnected] = useState<boolean>(false);
+  const [name, setName] = useState<string>("");
 
-  const searchParams = useSearchParams();
   const router = useRouter();
-  const socket = io("https://planning-poker-backend-7ii7.onrender.com");
+  // const socket = io("https://planning-poker-backend-7ii7.onrender.com", {
+  // transports: ["websocket"],
+  // });
   // const socket = io("http://localhost:3001");
 
   // const name = searchParams.get("name");
-  const name = sessionStorage.getItem("name");
+  // const name = sessionStorage.getItem("name");
   const roomId = params.roomId;
 
   useEffect(() => {
-    if (name) {
-      const uuid = v7();
-      setDetail({ id: uuid, name: name } as UserDetail);
-      socket.emit("joinRoom", { roomId: roomId, id: uuid, name: name });
-    } else {
-      router.replace(`/joins/${roomId}`);
+    if (socket) {
+      if (name) {
+        const uuid = v7();
+        setDetail({ id: uuid, name: name } as UserDetail);
+        socket?.emit("joinRoom", { roomId: roomId, id: uuid, name: name });
+      } else {
+        router.replace(`/joins/${roomId}`);
+      }
     }
   }, [name]);
 
   useEffect(() => {
-    socket.off("connect");
-    socket.on("connect", () => {
+    socket = io("https://planning-poker-backend-7ii7.onrender.com");
+
+    console.log(socket);
+    socket?.on("connect", () => {
       setIsConnected(true);
       console.log("Connected to server");
-      if (isReConnect) {
-        location.reload();
-      }
+      setName(sessionStorage.getItem("name") || "");
     });
-
-    return () => {
-      socket.off("connect");
-    };
-  }, [isReConnect]);
-
-  useEffect(() => {
-    socket.on("disconnect", () => {
+ 
+    socket?.on("disconnect", () => {
       console.log("Disconnected from server");
-      setIsReConnect(true);
+      setIsConnected(false);
       setUsers([]);
     });
 
-    socket.on("userDisconnect", (leaveUser: UserDetail) => {
+    socket?.on("userDisconnect", (leaveUser: UserDetail) => {
       console.log("User Disconnected from server");
       setUsers((prevUsers) =>
         prevUsers.filter((user) => user.id != leaveUser.id)
       );
     });
 
-    socket.on("usersInRoom", (clientInfo: any) => {
+    socket?.on("usersInRoom", (clientInfo: any) => {
       console.log("userInRomm Active");
 
       const userList = clientInfo.clients.map((c: any) => {
@@ -88,7 +89,7 @@ export default function Rooms({ params }: { params: { roomId: string } }) {
       setUsers(userList);
     });
 
-    socket.on("voteResult", (data: any) => {
+    socket?.on("voteResult", (data: any) => {
       setUsers((prevUsers) =>
         prevUsers.map((user) =>
           user.id === data.userDetail.id ? { ...user, vote: data.vote } : user
@@ -96,11 +97,11 @@ export default function Rooms({ params }: { params: { roomId: string } }) {
       );
     });
 
-    socket.on("messageResult", (message) => {
+    socket?.on("messageResult", (message) => {
       setMessage(message);
     });
 
-    socket.on("clearResult", () => {
+    socket?.on("clearResult", () => {
       setMessage("");
       setIsShowVote(false);
       setUsers((users) =>
@@ -112,22 +113,23 @@ export default function Rooms({ params }: { params: { roomId: string } }) {
       setResultVote(undefined);
     });
 
-    socket.on("showVoteResult", () => {
+    socket?.on("showVoteResult", () => {
       setIsShowVote(true);
     });
 
-    socket.on("summaryVoteResult", (resultVote) => {
+    socket?.on("summaryVoteResult", (resultVote) => {
       setResultVote(resultVote);
     });
 
     return () => {
-      socket.off("usersInRoom");
-      socket.off("disconnect");
-      socket.off("voteResult");
-      socket.off("messageResult");
-      socket.off("clearResult");
-      socket.off("showVoteResult");
-      socket.off("summaryVoteResult");
+      socket?.off("usersInRoom");
+      socket?.off("disconnect");
+      socket?.off("voteResult");
+      socket?.off("messageResult");
+      socket?.off("clearResult");
+      socket?.off("showVoteResult");
+      socket?.off("summaryVoteResult");
+      socket?.disconnect();
     };
   }, []);
 
@@ -192,11 +194,13 @@ export default function Rooms({ params }: { params: { roomId: string } }) {
       return result;
     }, {} as any);
 
-    const resultWithFlags: ResultVote[] = Object.entries(resultGroup).map(([key, value]) => ({
-      vote: key,
-      count: value,
-      isMax: value === maxCount,
-    }));
+    const resultWithFlags: ResultVote[] = Object.entries(resultGroup).map(
+      ([key, value]) => ({
+        vote: key,
+        count: value,
+        isMax: value === maxCount,
+      })
+    );
 
     socket?.emit("summaryVote", {
       roomId: roomId,
@@ -339,7 +343,19 @@ export default function Rooms({ params }: { params: { roomId: string } }) {
                   <ul className="border border-white rounded-md p-2">
                     {resultVote.map((value) => (
                       <li key={value.vote}>
-                        {value.vote ? value.vote : <span className="text-yellow-700">ไม่ vote</span>} = <span className={value.isMax ? "text-green-600 font-bold" : ""}>{value.count}</span>
+                        {value.vote ? (
+                          value.vote
+                        ) : (
+                          <span className="text-yellow-700">ไม่ vote</span>
+                        )}{" "}
+                        ={" "}
+                        <span
+                          className={
+                            value.isMax ? "text-green-600 font-bold" : ""
+                          }
+                        >
+                          {value.count}
+                        </span>
                       </li>
                     ))}
                   </ul>
