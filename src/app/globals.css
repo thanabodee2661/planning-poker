@@ -5,18 +5,24 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --border: 2px;
+  --border-color: #171717;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #242121;
     --foreground: #ededed;
+    --border: 2px;
+    --border-color: #ededed;
   }
 }
 
 body {
   color: var(--foreground);
   background: var(--background);
+  border: var(--border);
+  border-color: var(--border-color);
   font-family: Arial, Helvetica, sans-serif;
 }
 
