@@ -18,7 +18,7 @@ interface ResultVote {
   isMax: Boolean;
 }
 
-let socket: Socket | null = null;
+let socket: Socket;
 
 export default function Rooms({ params }: { params: { roomId: string } }) {
   const [detail, setDetail] = useState<UserDetail>();
@@ -28,18 +28,10 @@ export default function Rooms({ params }: { params: { roomId: string } }) {
   const [isShowVote, setIsShowVote] = useState<boolean>(false);
   const [resultVote, setResultVote] = useState<ResultVote[]>();
   const [initMessage, setInitMessage] = useState<boolean>(false);
-  const [isReConnect, setIsReConnect] = useState<boolean>(false);
   const [isConnected, setIsConnected] = useState<boolean>(false);
   const [name, setName] = useState<string>("");
 
   const router = useRouter();
-  // const socket = io("https://planning-poker-backend-7ii7.onrender.com", {
-  // transports: ["websocket"],
-  // });
-  // const socket = io("http://localhost:3001");
-
-  // const name = searchParams.get("name");
-  // const name = sessionStorage.getItem("name");
   const roomId = params.roomId;
 
   useEffect(() => {
@@ -62,11 +54,12 @@ export default function Rooms({ params }: { params: { roomId: string } }) {
       console.log("Connected to server");
       setName(sessionStorage.getItem("name") || "");
     });
- 
+
     socket?.on("disconnect", () => {
       console.log("Disconnected from server");
       setIsConnected(false);
       setUsers([]);
+      setName("");
     });
 
     socket?.on("userDisconnect", (leaveUser: UserDetail) => {
@@ -209,7 +202,7 @@ export default function Rooms({ params }: { params: { roomId: string } }) {
 
   return (
     <>
-      {isReConnect || !isConnected ? (
+      {!isConnected ? (
         <Loading message="กำลังเชื่อมต่อ Server กรุณารอสักครู่"></Loading>
       ) : (
         <div className="grid grid-cols-1 mt-10 mx-10 gap-2 lg:grid-cols-2">
